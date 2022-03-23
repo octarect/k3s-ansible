@@ -1,0 +1,8 @@
+- name: Update pacman cache
+  pacman:
+    update_cache: yes
+
+- name: Install latest archlinux-keyring
+  pacman:
+    name: archlinux-keyring
+    state: latest

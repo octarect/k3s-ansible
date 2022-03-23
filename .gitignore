@@ -1,0 +1,6 @@
+/.venv
+/.envrc
+/kubeconfig
+
+/inventory/*
+!/inventory/example/
