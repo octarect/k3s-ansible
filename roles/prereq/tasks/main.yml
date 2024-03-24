@@ -8,8 +8,12 @@
 - name: Install Dependent Ubuntu Packages
   when: ansible_distribution in ['Ubuntu']
   ansible.builtin.apt:
-    name: policycoreutils  # Used by install script to restore SELinux context
+    name: "{{ item }}"  # Used by install script to restore SELinux context
     update_cache: true
+    cache_valid_time: 3600
+  with_items:
+    - policycoreutils
+    - "{{ additional_packages }}"
 
 - name: Enable IPv4 forwarding
   ansible.posix.sysctl:
