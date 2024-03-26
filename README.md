@@ -63,6 +63,17 @@ Start provisioning of the cluster using the following command:
 ansible-playbook playbook/site.yml -i inventory.yml
 ```
 
+## Create an user for ansible
+
+In the general case, you have to create an user and register a SSH key of your control node on managed nodes.
+
+You may want to run the following command on each managed node to do the above:
+
+```bash
+export GH_USERNAME=<YOUR GITHUB USERNAME>
+curl -sfL https://raw.githubusercontent.com/octarect/k3s-ansible/master/scripts/node-init.sh | bash -
+```
+
 ## Upgrading
 
 A playbook is provided to upgrade K3s on all nodes in the cluster. To use it, update `k3s_version` with the desired version in `inventory.yml` and run:
