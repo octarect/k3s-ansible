@@ -15,6 +15,10 @@
     - policycoreutils
     - "{{ additional_packages }}"
 
+- name: Set time zone to UTC
+  community.general.timezone:
+    name: UTC
+
 - name: Set hostname
   ansible.builtin.hostname:
     name: "{{ hostname }}"
