@@ -1,0 +1,62 @@
+---
+- when: var_device is defined and var_device | length > 0
+  block:
+    - name: Install util-linux to get fstrim
+      ansible.builtin.package:
+        name: util-linux
+        state: present
+
+    - name: Enable fstrim.timer
+      ansible.builtin.systemd_service:
+        name: fstrim.timer
+        state: started
+        enabled: yes
+
+    - name: Create the data partition on the external storage
+      community.general.parted:
+        device: "{{ var_device }}"
+        fs_type: ext4
+        label: gpt
+        name: data
+        number: 1
+        state: present
+
+    - name: "Get the created partition"
+      ansible.builtin.shell: "lsblk --json -o NAME,PATH,PARTUUID {{ var_device }} | jq '.blockdevices[0].children[0]'"
+      register: part_lsblk
+      changed_when: no
+
+    - ansible.builtin.set_fact:
+        part_info: "{{ part_lsblk.stdout }}"
+
+    - name: "Create a ext4 FS on {{ part_info.path }}"
+      community.general.filesystem:
+        fstype: ext4
+        dev: "{{ part_info.path }}"
+
+    - name: Mount the data partition
+      ansible.posix.mount:
+        path: "{{ var_mount_path }}"
+        src: "PARTUUID={{ part_info.partuuid }}"
+        fstype: ext4
+        opts: defaults,noatime
+        state: mounted
+
+    - name: Create data directories on /mnt/data
+      ansible.builtin.file:
+        path: "{{ var_mount_path + item }}"
+        state: directory
+        mode: '0755'
+      with_items:
+        - "{{ mounted_paths }}"
+        - "{{ extra_mounted_paths }}"
+
+    - name: Bind data directories
+      ansible.posix.mount:
+        path: "{{ item }}"
+        src: "{{ var_mount_path + item }}"
+        fstype: none
+        opts: bind
+        state: mounted
+      with_items:
+        - "{{ mounted_paths }}"

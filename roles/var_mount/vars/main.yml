@@ -1,0 +1,11 @@
+---
+var_mount_path: /mnt/data
+mounted_paths:
+  - /run/k3s
+  - /var/lib/cni
+  - /var/lib/containerd
+  - /var/lib/docker
+  - /var/lib/kubelet
+  - /var/lib/rancher
+  - /var/log/containers
+  - /var/log/pods

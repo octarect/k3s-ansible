@@ -7,6 +7,7 @@
     - role: prereq
     - role: airgap
     - role: raspberrypi
+    - role: var_mount
 
 - name: Setup K3S server
   hosts: server

@@ -4,6 +4,10 @@ k3s_cluster:
     server:
       hosts:
         192.16.35.11:
+        # Optional vars
+          # If your system disk is slow (ex. emmc), you may want to use a fast storage instead.
+          # var_device: /dev/nvme0n1
+          # extra_mounted_paths: ["/storage"]
     agent:
       hosts:
         192.16.35.12:
