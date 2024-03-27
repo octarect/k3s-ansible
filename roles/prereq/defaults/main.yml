@@ -1,3 +1,4 @@
 ---
 api_port: 6443
 additional_packages: []
+hostname: ""
