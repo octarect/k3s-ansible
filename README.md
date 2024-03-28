@@ -67,10 +67,14 @@ ansible-playbook playbook/site.yml -i inventory.yml
 
 In the general case, you have to create an user and register a SSH key of your control node on managed nodes.
 
-You may want to run the following command on each managed node to do the above:
+To do the above, you may want to run the following commands with root privileges on each managed node.
+The SSH keys will be fetched from your GitHub account.
 
 ```bash
 export GH_USERNAME=<YOUR GITHUB USERNAME>
+```
+
+```bash
 curl -sfL https://raw.githubusercontent.com/octarect/k3s-ansible/master/scripts/node-init.sh | bash -
 ```
 
