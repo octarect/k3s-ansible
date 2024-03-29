@@ -1,6 +1,8 @@
 ---
-var_mount_path: /mnt/data
-mounted_paths:
+var_volume:
+  name: var
+  path: /mnt/data
+var_target_paths:
   - /run/k3s
   - /var/lib/cni
   - /var/lib/containerd

@@ -7,7 +7,7 @@
     - role: prereq
     - role: airgap
     - role: raspberrypi
-    - role: var_mount
+    - role: extra_device
 
 - name: Setup K3S server
   hosts: server

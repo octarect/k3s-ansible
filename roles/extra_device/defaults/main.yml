@@ -1,0 +1,8 @@
+---
+extra_device: ""
+var_size: 128G
+extra_volumes: []
+# extra_volumes:
+# - name: storage
+#   size: +100%FREE
+#   path: /mnt/storage

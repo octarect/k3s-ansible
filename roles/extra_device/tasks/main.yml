@@ -1,0 +1,81 @@
+---
+- when: extra_device is defined and extra_device | length > 0
+  block:
+    - name: Install dependent packages
+      ansible.builtin.package:
+        name: "{{ item }}"
+        state: present
+      with_items:
+        # To get fstrim
+        - util-linux
+        # Use jq in the remaining tasks
+        - jq
+
+    - name: Enable fstrim.timer
+      ansible.builtin.systemd_service:
+        name: fstrim.timer
+        state: started
+        enabled: yes
+
+    - name: Create a LVM volume group on {{ extra_device }}
+      community.general.lvg:
+        vg: k3s
+        pvs: "{{ extra_device }}"
+        pesize: 32M
+
+    - name: Create a logical volume for /var
+      community.general.lvol:
+        vg: k3s
+        lv: "{{ item.name }}"
+        size: "{{ item.size }}"
+        state: present
+      with_items:
+        - "{{ var_volume | ansible.builtin.combine({'size': var_size}) }}"
+        - "{{ extra_volumes }}"
+
+    - name: Make ext4 FS on logical volumes
+      community.general.filesystem:
+        fstype: ext4
+        dev: "/dev/k3s/{{ item.name }}"
+      with_items:
+        - name: var
+        - "{{ extra_volumes }}"
+
+    - name: Get created volumes
+      ansible.builtin.shell: "lsblk --json -o NAME,PATH,UUID {{ extra_device }}"
+      register: lvol_lsblk
+      changed_when: no
+
+    - ansible.builtin.set_fact:
+        lvol_info: "{{ lvol_lsblk.stdout }}"
+
+    - name: Mount volumes
+      ansible.posix.mount:
+        path: "{{ item.path }}"
+        src: "UUID={{ lvol_info.blockdevices[0].children[index].uuid }}"
+        fstype: ext4
+        opts: defaults,noatime
+        state: mounted
+      loop_control:
+        index_var: index
+      with_items:
+        - "{{ var_volume }}"
+        - "{{ extra_volumes }}"
+
+    - name: Create data directories on {{ var_volume.path }}
+      ansible.builtin.file:
+        path: "{{ var_volume.path + item }}"
+        state: directory
+        mode: '0755'
+      with_items:
+        - "{{ var_target_paths }}"
+
+    - name: Bind data directories
+      ansible.posix.mount:
+        path: "{{ item }}"
+        src: "{{ var_volume.path + item }}"
+        fstype: none
+        opts: bind
+        state: mounted
+      with_items:
+        - "{{ var_target_paths }}"
