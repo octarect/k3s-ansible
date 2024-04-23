@@ -1,0 +1,5 @@
+tls-sans:
+# TLS SANs for LB
+{% for ip in groups['loadbalancer'] %}
+  - {{ ip }}
+{% endfor %}

@@ -1,0 +1,21 @@
+global
+    maxconn 256
+    log stdout format raw local0
+
+defaults
+    timeout connect 5000ms
+    timeout client 30000ms
+    timeout server 30000ms
+    log global
+
+frontend kube-apiservers-https
+    bind *:443
+    mode tcp
+    default_backend kube-apiservers
+
+backend kube-apiservers
+    mode tcp
+    balance roundrobin
+{% for node in groups['server'] %}
+    server cp00 {{ node }}:6443 check inter 5s
+{% endfor %}

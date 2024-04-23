@@ -1,0 +1,26 @@
+---
+- name: Create haproxy config directory
+  ansible.builtin.file:
+    path: "{{ haproxy_config_path }}"
+    state: directory
+
+- name: Copy haproxy config
+  ansible.builtin.template:
+    src: "haproxy.cfg.j2"
+    dest: "{{ haproxy_config_path }}/haproxy.cfg"
+    owner: root
+    group: root
+    mode: "u=rw,g=r,o=r"
+
+- name: Run haproxy
+  docker_container:
+    name: haproxy
+    image: "{{ haproxy_image }}"
+    ports:
+      - "6443:443"
+    state: started
+    sysctls:
+      net.ipv4.ip_unprivileged_port_start: 0
+    volumes:
+      - "{{ haproxy_config_path }}:/usr/local/etc/haproxy:ro"
+    auto_remove: yes

@@ -1,21 +1,26 @@
 ---
 k3s_cluster:
   children:
-    server:
+    node:
+      children:
+        server:
+          hosts:
+            192.16.35.11:
+            # Optional vars
+              # hostname: srv00
+              # If your system disk is slow (ex. emmc), you may want to use a fast storage instead.
+              # extra_device: /dev/nvme0n1
+              # extra_volumes:
+              #   - name: storage
+              #     size: +100%FREE
+              #     path: /mnt/storage
+        agent:
+          hosts:
+            192.16.35.12:
+            192.16.35.13:
+    loadbalancer:
       hosts:
-        192.16.35.11:
-        # Optional vars
-          # hostname: srv00
-          # If your system disk is slow (ex. emmc), you may want to use a fast storage instead.
-          # extra_device: /dev/nvme0n1
-          # extra_volumes:
-          #   - name: storage
-          #     size: +100%FREE
-          #     path: /mnt/storage
-    agent:
-      hosts:
-        192.16.35.12:
-        192.16.35.13:
+        192.16.35.14:
 
   # Required Vars
   vars:

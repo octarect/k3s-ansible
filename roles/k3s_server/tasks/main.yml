@@ -54,6 +54,22 @@
         dest: "/etc/rancher/k3s/config.yaml"
         mode: 0644
 
+- name: Set additional TLS SANs for loadbalancer
+  when: groups['loadbalancer'] is defined and groups['loadbalancer'] | length > 0
+  block:
+    - name: Make config directory
+      ansible.builtin.file:
+        path: "/etc/rancher/k3s/config.yaml.d"
+        mode: 0755
+        state: directory
+    - name: Generate TLS SANs configuration
+      ansible.builtin.template:
+        src: "k3s-config-tls-sans.yaml.j2"
+        dest: "/etc/rancher/k3s/config.yaml.d/tls-sans.yaml"
+        owner: root
+        group: root
+        mode: 0644
+
 - name: Init first server node
   when: inventory_hostname == groups['server'][0]
   block:
@@ -126,6 +142,15 @@
             path: "{{ kubeconfig }}"
             regexp: 'name: default'
             replace: 'name: k3s-ansible'
+          delegate_to: 127.0.0.1
+          become: false
+
+        - name: Access kube-apiserver through loadbalancer
+          when: groups['loadbalancer'] is defined and groups['loadbalancer'] | length > 0
+          ansible.builtin.replace:
+            path: "{{ kubeconfig }}"
+            regexp: "{{ groups['server'][0] }}"
+            replace: "{{ groups['loadbalancer'][0] }}"
           delegate_to: 127.0.0.1
           become: false
 
