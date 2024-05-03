@@ -8,6 +8,7 @@
     - role: airgap
     - role: raspberrypi
     - role: extra_device
+    - role: tuner
 
 - name: Setup K3S server
   hosts: server

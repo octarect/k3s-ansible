@@ -14,6 +14,8 @@ k3s_cluster:
               #   - name: storage
               #     size: +100%FREE
               #     path: /mnt/storage
+              # Set yes if the node has a TV tuner.
+              # has_tuner: yes
         agent:
           hosts:
             192.16.35.12:

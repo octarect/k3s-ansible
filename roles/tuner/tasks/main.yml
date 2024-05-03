@@ -1,0 +1,68 @@
+---
+- when: has_tuner
+  block:
+    - name: Install dependent packages
+      ansible.builtin.apt:
+        name: "{{ item }}"
+      with_items:
+        - libccid
+        - pcscd
+        - pcsc-tools
+
+    - name: Enable and start pcscd
+      ansible.builtin.systemd:
+        name: pcscd
+        daemon_reload: yes
+        state: started
+        enabled: yes
+
+    - name: Check if the driver for PX-S1UD/PX-Q1UD already installed
+      stat:
+        path: /lib/firmware/isdbt_rio.inp
+      register: stat_result
+
+    - when: not stat_result.stat.exists
+      block:
+        - name: Create temporary directory
+          ansible.builtin.tempfile:
+            state: directory
+            suffix: plex-driver
+          register: tempdir
+
+        # When using PX-Q1UD, the driver for PX-S1UD (1ch model) is compatible with it.
+        - name: Download the driver for PX-S1UD/PX-Q1UD
+          ansible.builtin.get_url:
+            url: http://plex-net.co.jp/plex/px-s1ud/PX-S1UD_driver_Ver.1.0.1.zip
+            timeout: 120
+            dest: "{{ tempdir.path }}/driver.zip"
+            owner: root
+            group: root
+            mode: 0644
+
+        - name: Extract the archive
+          ansible.builtin.unarchive:
+            src: "{{ tempdir.path }}/driver.zip"
+            dest: "{{ tempdir.path }}"
+            remote_src: yes
+            include:
+              - "*/x64/amd64/isdbt_rio.inp"
+            extra_opts:
+              - -j
+
+        - name: Install the driver for PX-S1UD/PX-Q1UD
+          ansible.builtin.copy:
+            src: "{{ tempdir.path }}/isdbt_rio.inp"
+            dest: /lib/firmware/isdbt_rio.inp
+            remote_src: yes
+            owner: root
+            group: root
+            mode: 0644
+
+        - name: Remove temporary directory
+          ansible.builtin.file:
+            path: "{{ tempdir.path }}"
+            state: absent
+
+        - name: Reboot
+          ansible.builtin.reboot:
+            reboot_timeout: 300
